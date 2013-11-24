@@ -36,16 +36,22 @@
 
 //fixed number
 int plotScope = 100; //movable scope of plotter [step] 
+int c_timer =  500; //compensation timer[ms]
 
 //variant
 int stepState = 1;
-int m_timer =  200;
 int currentPos = 0;
-int m_targetPos = 0;
+int targetPos = 0;
+
+float m_targetSte = 0.0;
+int m_rot = 0;
+int m_sol = 0;
 int m_gain = 10;
-boolean m_state[STATE+1];
-int m_speed = 50;
+int m_p_speed = 50;
 int m_c_speed = 50;
+
+
+boolean m_state[STATE+1];
 
 
 void stepBackward(){
@@ -58,16 +64,16 @@ void stepBackward(){
 		digitalWrite(PINA_A, HIGH);
 		digitalWrite(PINA_B, HIGH);
 		stepState = 2;	
-}else if(stepState == 2){
+        }else if(stepState == 2){
 		digitalWrite(PINA_A, LOW);
 		digitalWrite(PINA_B, HIGH);
 		stepState = 1;
-}else{
+        }else{
 		digitalWrite(PINA_A, LOW);
 		digitalWrite(PINA_B, LOW);
 		stepState = 4;
-}
-currentPos++;		
+         }
+        currentPos++;		
 }
 
 void stepForward(){
@@ -89,26 +95,47 @@ void stepForward(){
 		digitalWrite(PINA_B, LOW);
 		stepState = 1;
         }	
-currentPos--;	
+        currentPos--;	
 }
 
 void compensation(){
-	int m_div  = Math.abs(targetPos - currentPos);
-	if (Math.abs(currentPos) + m_div >= plotScope/2){
-		m_div = plotScope/2 - Math.abs(currentPos);
-	if (m_div > 10){
+        //turn record
+        for(int i = 0; i <=8 ; i++){
+    	  digitalWrite(PINB_A, LOW);
+  	  digitalWrite(PINB_B, HIGH);
+  	  delay(10);
+  	  // P1:off, P2:ON, P1B:ON, P2B:off
+  	  digitalWrite(PINB_A, HIGH);
+  	  digitalWrite(PINB_B, HIGH);
+  	  delay(10);
+  	  // P1:off, P2:off, P1B:ON, P2B:ON
+  	  digitalWrite(PINB_A, HIGH);
+  	  digitalWrite(PINB_B, LOW);
+  	  delay(10);
+  	  // P1:ON, P2:off, P1B:off, P2B:ON
+  	  digitalWrite(PINB_A, LOW);
+  	  digitalWrite(PINB_B, LOW);
+  	  delay(10);        
+        }
+  
+	int m_div  = abs(targetPos - currentPos);
+	
+        if (abs(currentPos) + m_div >= plotScope/2){
+		m_div = plotScope/2 - abs(currentPos);
+	}
+        if (m_div > 10){
 		if ( targetPos  > currentPos){
 			for(int i = 0; i <=m_div; i ++){
 				stepForward();
                                 delay(m_c_speed);
 			}
 		}else{
-			for(int i  = 0; i <= m_div; i++0){
+			for(int i  = 0; i <= m_div; i++){
 				stepBackward();
                                 delay(m_c_speed);
 			}
 		}
-}	
+        }	
 }
 
 
@@ -155,8 +182,6 @@ TimedLong c_speed;
 InPort<TimedLong> c_speedIn("c_speed", c_speed);
 TimedLong c_timer;
 InPort<TimedLong> c_timerIn("c_timer", c_timer);
-TimedLong c_gain;
-InPort<TimedLong> c_gainIn("c_gain", c_gain);
 TimedBooleanSeq state;
 OutPort<TimedBooleanSeq> stateOut("state", state);
 
@@ -181,12 +206,11 @@ int RTno::onInitialize() {
   addInPort(p_speedIn);
   addInPort(c_speedIn);
   addInPort(c_timerIn);
-  addInPort(c_gainIn);
   addOutPort(stateOut);
   
   // Some initialization (like port direction setting)
   //setting timer
-  MsTimer2::set(m_timer, compensation);
+  MsTimer2::set(c_timer, compensation);
   //setting pinMode
   pinMode(PIN_SW, INPUT);
   pinMode(PINA_A, OUTPUT);
@@ -211,12 +235,12 @@ int RTno::onActivated() {
   //initialize plotter position and reset position-counter
 	while ( digitalRead(PIN_SW) == LOW ) {
 		stepBackword();
-                delay(m_speed);
+                delay(100);
 	}
 	
 	for (int i =  0; i <= plotScope/2 ; i ++){
 		stepForword();
-                delay(m_speed);
+                delay(100);
         }
         currentPos = 0;
         targetPos = 0;	
@@ -261,16 +285,22 @@ int RTno::onExecute() {
     if(p_speedIn.isNew()) m_p_speed = p_speedIn.data;
     if(c_speedIn.isNew()) m_c_speed = c_speedIn.data;
     if(c_timerIn.isNew()) m_c_timer = c_timerIn.data;
-    if(c_gainIn.isNew()) m_c_gain = c_gainIn.data;
     
-    //turn record
     
     //move plotter
     if(m_targetStep > 0){
+         if(currentPos + m_targetStep * m_gain > plotScope/2){
+             m_state[1] = True;
+             m_targetStep = m_targetStep - (currentPos + m_targetStep * m_gain - plotScope/2)/m_gain
+         }
          for(int i = 0; i < (int)(m_targetStep * m_gain); i++){
              stepForward();
              delay(m_p_speed);
     }else if(m_targetStep < 0){
+         if(abs(currentPos + m_targetStep * m_gain) plotScope/2){
+             m_state[2] = True;
+             m_targetStep = m_targetStep + (abs(currentPos + m_targetStep * m_gain) - plotScope/2)/m_gain
+         }
          for(int i = 0; i < (int)(m_targetStep * -1 * m_gain); i++){
              stepBackFard();
              delay(m_p_speed);
