@@ -32,6 +32,8 @@
 #define PINB_A (11) //for record
 #define PINB_B (12) //for record
 #define PIN_SOLENOID (13)
+
+
 #define STATE (3)
 
 //fixed number
@@ -169,7 +171,7 @@ void rtcconf(config_str& conf, exec_cxt_str& exec_cxt) {
  **/
  
 TimedFloat tartgetStep;
-InPort<TimedFloat> targetStepIn("targetStep", targetStep);
+InPort<TimedDouble> targetStepIn("targetStep", targetStep);
 TimedLong rot;
 InPort<TimedLong> rotIn("rot", rot);
 TimedLong sol;
@@ -233,7 +235,7 @@ int RTno::onInitialize() {
 int RTno::onActivated() {
   // Write here initialization code.
   //initialize plotter position and reset position-counter
-	while ( digitalRead(PIN_SW) == LOW ) {
+	while ( digitalRead(PIN_SW) == HIGH ) {
 		stepBackword();
                 delay(100);
 	}
@@ -277,6 +279,9 @@ int RTno::onDeactivated()
 // ERROR condition.r
 //////////////////////////////////////////////
 int RTno::onExecute() {
+    m_state[1] = false;
+    m_state[2] = true;
+    
     //read data from dataPorts
     if(targetStepIn.isNew()) m_targetStep = targetStepIn.data;
     if(rotIn.isNew()) m_rot = (int)rotIn.data;
@@ -307,6 +312,9 @@ int RTno::onExecute() {
         
          }  
     }
+    
+    targetPos = targetPos + m_targetStep * m_gain;
+    
     //on/off solenoid
     if(m_sol > 0){
         digitalWrite(PIN_SOLENOID, HIGH)
