@@ -279,12 +279,12 @@ int RTno::onDeactivated()
 int RTno::onExecute() {
     //read data from dataPorts
     if(targetStepIn.isNew()) m_targetStep = targetStepIn.data;
-    if(rotIn.isNew()) m_rot = rotIn.data;
-    if(solIn.isNew()) m_sol = solIn.data;
-    if(gainIn.isNew()) m_gain = gainIn.data;
-    if(p_speedIn.isNew()) m_p_speed = p_speedIn.data;
-    if(c_speedIn.isNew()) m_c_speed = c_speedIn.data;
-    if(c_timerIn.isNew()) m_c_timer = c_timerIn.data;
+    if(rotIn.isNew()) m_rot = (int)rotIn.data;
+    if(solIn.isNew()) m_sol = (int)solIn.data;
+    if(gainIn.isNew()) m_gain = (int)gainIn.data;
+    if(p_speedIn.isNew()) m_p_speed = (int)p_speedIn.data;
+    if(c_speedIn.isNew()) m_c_speed = (int)c_speedIn.data;
+    if(c_timerIn.isNew()) m_c_timer = (int)c_timerIn.data;
     
     
     //move plotter
