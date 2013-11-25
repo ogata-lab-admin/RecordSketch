@@ -44,7 +44,7 @@ int stepState = 1;
 int currentPos = 0;
 int targetPos = 0;
 
-float m_targetSte = 0.0;
+float m_targetStep = 0.0;
 int m_rot = 0;
 int m_sol = 0;
 int m_gain = 10;
@@ -169,8 +169,8 @@ void rtcconf(config_str& conf, exec_cxt_str& exec_cxt) {
  * uncomment the line you want to declare.
  **/
  
-TimedFloat tartgetStep;
-InPort<TimedFloat> targetStepIn("targetStep", targetStep);
+TimedDouble targetStep;
+InPort<TimedDouble> targetStepIn("targetStep", targetStep);
 TimedLong rot;
 InPort<TimedLong> rotIn("rot", rot);
 TimedLong sol;
@@ -181,8 +181,6 @@ TimedLong p_speed;
 InPort<TimedLong> p_speedIn("p_speed", p_speed);
 TimedLong c_speed;
 InPort<TimedLong> c_speedIn("c_speed", c_speed);
-TimedLong c_timer;
-InPort<TimedLong> c_timerIn("c_timer", c_timer);
 TimedBooleanSeq state;
 OutPort<TimedBooleanSeq> stateOut("state", state);
 
@@ -206,7 +204,6 @@ int RTno::onInitialize() {
   addInPort(gainIn);
   addInPort(p_speedIn);
   addInPort(c_speedIn);
-  addInPort(c_timerIn);
   addOutPort(stateOut);
   
   // Some initialization (like port direction setting)
@@ -235,12 +232,12 @@ int RTno::onActivated() {
   // Write here initialization code.
   //initialize plotter position and reset position-counter
 	while ( digitalRead(PIN_SW) == LOW ) {
-		stepBackword();
+		stepBackward();
                 delay(100);
 	}
 	
 	for (int i =  0; i <= plotScope/2 ; i ++){
-		stepForword();
+		stepForward();
                 delay(100);
         }
         currentPos = 0;
@@ -266,7 +263,7 @@ int RTno::onActivated() {
 int RTno::onDeactivated()
 {
   // Write here finalization code.
-  MsTimer2::end();
+  MsTimer2::stop();
   return RTC_OK;
 }
 
@@ -279,46 +276,63 @@ int RTno::onDeactivated()
 //////////////////////////////////////////////
 int RTno::onExecute() {
     //read data from dataPorts
-    if(targetStepIn.isNew()) m_targetStep = targetStepIn.data;
-    if(rotIn.isNew()) m_rot = (int)rotIn.data;
-    if(solIn.isNew()) m_sol = (int)solIn.data;
-    if(gainIn.isNew()) m_gain = (int)gainIn.data;
-    if(p_speedIn.isNew()) m_p_speed = (int)p_speedIn.data;
-    if(c_speedIn.isNew()) m_c_speed = (int)c_speedIn.data;
-    if(c_timerIn.isNew()) m_c_timer = (int)c_timerIn.data;
-    
+    if(targetStepIn.isNew()) {
+        targetStepIn.read();
+        m_targetStep = targetStep.data;
+    }
+    if(rotIn.isNew()){
+        rotIn.read();
+        m_rot = (int)rot.data;
+    }
+    if(solIn.isNew()){
+        solIn.read();
+        m_sol = (int)sol.data;
+    }
+    if(gainIn.isNew()){
+        gainIn.read();
+        m_gain = (int)gain.data;
+    }
+    if(p_speedIn.isNew()){
+        p_speedIn.read();
+        m_p_speed = (int)p_speed.data;
+    }
+    if(c_speedIn.isNew()){
+        c_speedIn.read();
+        m_c_speed = (int)c_speed.data;
+    }
     
     //move plotter
     if(m_targetStep > 0){
          if(currentPos + m_targetStep * m_gain > plotScope/2){
-             m_state[1] = True;
-             m_targetStep = m_targetStep - (currentPos + m_targetStep * m_gain - plotScope/2)/m_gain
+             m_state[1] = true;
+             m_targetStep = m_targetStep - (currentPos + m_targetStep * m_gain - plotScope/2)/m_gain;
          }
          for(int i = 0; i < (int)(m_targetStep * m_gain); i++){
              stepForward();
              delay(m_p_speed);
+         }
     }else if(m_targetStep < 0){
-         if(abs(currentPos + m_targetStep * m_gain) plotScope/2){
-             m_state[2] = True;
-             m_targetStep = m_targetStep + (abs(currentPos + m_targetStep * m_gain) - plotScope/2)/m_gain
+         if(abs(currentPos + m_targetStep * m_gain) > plotScope/2){
+             m_state[2] = true;
+             m_targetStep = m_targetStep + (abs(currentPos + m_targetStep * m_gain) - plotScope/2)/m_gain;
          }
          for(int i = 0; i < (int)(m_targetStep * -1 * m_gain); i++){
-             stepBackFard();
+             stepBackward();
              delay(m_p_speed);
         
          }  
     }
     //on/off solenoid
     if(m_sol > 0){
-        digitalWrite(PIN_SOLENOID, HIGH)
+        digitalWrite(PIN_SOLENOID, HIGH);
     }
     
     //write state for dataPorts
-    state0ut.data.length(4);
+    state.data.length(4);
     for(int i = 0;i < 4; i++){
         state.data[i] = m_state[i];
     }
-    stateOut.write()
+    stateOut.write();
 
     
   return RTC_OK; 
