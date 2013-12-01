@@ -8,7 +8,7 @@
 			"architecture" : "x86"
 		}
 ,
-		"rect" : [ 424.0, 44.0, 1038.0, 763.0 ],
+		"rect" : [ -119.0, -1034.0, 1658.0, 988.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -150,7 +150,7 @@
 					"numinlets" : 3,
 					"numoutlets" : 1,
 					"outlettype" : [ "float" ],
-					"patching_rect" : [ 528.139771, 1021.589478, 153.0, 21.0 ],
+					"patching_rect" : [ 528.139771, 1025.589478, 153.0, 21.0 ],
 					"text" : "slide 10. 10."
 				}
 
@@ -2013,7 +2013,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 622.713318, 499.916016, 96.0, 20.0 ],
-					"text" : "expr $f1*$i2*0.2"
+					"text" : "expr $f1*$i2*0.3"
 				}
 
 			}
@@ -2604,7 +2604,7 @@
 					"maxclass" : "panel",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 506.896667, 682.381042, 620.236633, 484.315155 ]
+					"patching_rect" : [ 506.896667, 686.540405, 620.236633, 484.315155 ]
 				}
 
 			}
