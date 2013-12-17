@@ -1,0 +1,300 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# -*- Python -*-
+
+"""
+ @file macTabletRTC.py
+ @brief get pen tablet data on mac
+ @date $Date$
+
+
+"""
+import sys
+import time
+sys.path.append(".")
+
+# Import RTM module
+import RTC
+import OpenRTM_aist
+
+import tabletWindow
+
+# Import Service implementation class
+# <rtc-template block="service_impl">
+
+# </rtc-template>
+
+# Import Service stub modules
+# <rtc-template block="consumer_import">
+# </rtc-template>
+
+
+# This module's spesification
+# <rtc-template block="module_spec">
+mactabletrtc_spec = ["implementation_id", "macTabletRTC", 
+		 "type_name",         "macTabletRTC", 
+		 "description",       "get pen tablet data on mac", 
+		 "version",           "1.0.0", 
+		 "vendor",            "ogata-lab", 
+		 "category",          "Category", 
+		 "activity_type",     "STATIC", 
+		 "max_instance",      "1", 
+		 "language",          "Python", 
+		 "lang_type",         "SCRIPT",
+		 ""]
+# </rtc-template>
+
+##
+# @class macTabletRTC
+# @brief get pen tablet data on mac
+# 
+# 
+class macTabletRTC(OpenRTM_aist.DataFlowComponentBase):
+	
+	##
+	# @brief constructor
+	# @param manager Maneger Object
+	# 
+	def __init__(self, manager):
+		OpenRTM_aist.DataFlowComponentBase.__init__(self, manager)
+
+		self._d_position = RTC.TimedPoint2D(RTC.Time(0,0),0)
+		"""
+		"""
+		self._positionOut = OpenRTM_aist.OutPort("position", self._d_position)
+		self._d_pressure = RTC.TimedUShort(RTC.Time(0,0),0)
+		"""
+		"""
+		self._pressureOut = OpenRTM_aist.OutPort("pressure", self._d_pressure)
+		self.callback = None
+
+		
+
+
+		# initialize of configuration-data.
+		# <rtc-template block="init_conf_param">
+		
+		# </rtc-template>
+
+
+		 
+	##
+	#
+	# The initialize action (on CREATED->ALIVE transition)
+	# formaer rtc_init_entry() 
+	# 
+	# @return RTC::ReturnCode_t
+	# 
+	#
+	def onInitialize(self):
+		# Bind variables and configuration variable
+		
+		# Set InPort buffers
+		
+		# Set OutPort buffers
+		self.addOutPort("position",self._positionOut)
+		self.addOutPort("pressure",self._pressureOut)
+		
+		# Set service provider to Ports
+		
+		# Set service consumers to Ports
+		
+		# Set CORBA Service Ports
+		
+		return RTC.RTC_OK
+	
+	#	##
+	#	# 
+	#	# The finalize action (on ALIVE->END transition)
+	#	# formaer rtc_exiting_entry()
+	#	# 
+	#	# @return RTC::ReturnCode_t
+	#
+	#	# 
+	#def onFinalize(self, ec_id):
+	#
+	#	return RTC.RTC_OK
+	
+	#	##
+	#	#
+	#	# The startup action when ExecutionContext startup
+	#	# former rtc_starting_entry()
+	#	# 
+	#	# @param ec_id target ExecutionContext Id
+	#	#
+	#	# @return RTC::ReturnCode_t
+	#	#
+	#	#
+	#def onStartup(self, ec_id):
+	#
+	#	return RTC.RTC_OK
+	
+	#	##
+	#	#
+	#	# The shutdown action when ExecutionContext stop
+	#	# former rtc_stopping_entry()
+	#	#
+	#	# @param ec_id target ExecutionContext Id
+	#	#
+	#	# @return RTC::ReturnCode_t
+	#	#
+	#	#
+	#def onShutdown(self, ec_id):
+	#
+	#	return RTC.RTC_OK
+	
+	#	##
+	#	#
+	#	# The activated action (Active state entry action)
+	#	# former rtc_active_entry()
+	#	#
+	#	# @param ec_id target ExecutionContext Id
+	#	# 
+	#	# @return RTC::ReturnCode_t
+	#	#
+	#	#
+	#def onActivated(self, ec_id):
+	#
+	#	return RTC.RTC_OK
+	
+	#	##
+	#	#
+	#	# The deactivated action (Active state exit action)
+	#	# former rtc_active_exit()
+	#	#
+	#	# @param ec_id target ExecutionContext Id
+	#	#
+	#	# @return RTC::ReturnCode_t
+	#	#
+	#	#
+	#def onDeactivated(self, ec_id):
+	#
+	#	return RTC.RTC_OK
+	
+		##
+		#
+		# The execution action that is invoked periodically
+		# former rtc_active_do()
+		#
+		# @param ec_id target ExecutionContext Id
+		#
+		# @return RTC::ReturnCode_t
+		#
+		#
+	def onExecute(self, ec_id):
+		if self.callback != None:
+			m_state, m_data_x, m_data_y, m_data_p = self.callback()
+			if m_state:
+				self._d_position.data = RTC.TimedPoint2D(RTC.Time(0,0), [m_data_x, m_data_y])
+				self._d_pressure.data = RTC.TimedUShort(RTC.Time(0,0), m_data_p)
+				if m_data_p > 0:
+					print "outport: " + str(m_data_x) + ", " + str(m_data_y) + ", " + str(m_data_p)
+				self._positionOut.write()
+				self._pressureOut.write()
+		return RTC.RTC_OK
+	
+	#	##
+	#	#
+	#	# The aborting action when main logic error occurred.
+	#	# former rtc_aborting_entry()
+	#	#
+	#	# @param ec_id target ExecutionContext Id
+	#	#
+	#	# @return RTC::ReturnCode_t
+	#	#
+	#	#
+	#def onAborting(self, ec_id):
+	#
+	#	return RTC.RTC_OK
+	
+	#	##
+	#	#
+	#	# The error action in ERROR state
+	#	# former rtc_error_do()
+	#	#
+	#	# @param ec_id target ExecutionContext Id
+	#	#
+	#	# @return RTC::ReturnCode_t
+	#	#
+	#	#
+	#def onError(self, ec_id):
+	#
+	#	return RTC.RTC_OK
+	
+	#	##
+	#	#
+	#	# The reset action that is invoked resetting
+	#	# This is same but different the former rtc_init_entry()
+	#	#
+	#	# @param ec_id target ExecutionContext Id
+	#	#
+	#	# @return RTC::ReturnCode_t
+	#	#
+	#	#
+	#def onReset(self, ec_id):
+	#
+	#	return RTC.RTC_OK
+	
+	#	##
+	#	#
+	#	# The state update action that is invoked after onExecute() action
+	#	# no corresponding operation exists in OpenRTm-aist-0.2.0
+	#	#
+	#	# @param ec_id target ExecutionContext Id
+	#	#
+	#	# @return RTC::ReturnCode_t
+	#	#
+
+	#	#
+	#def onStateUpdate(self, ec_id):
+	#
+	#	return RTC.RTC_OK
+	
+	#	##
+	#	#
+	#	# The action that is invoked when execution context's rate is changed
+	#	# no corresponding operation exists in OpenRTm-aist-0.2.0
+	#	#
+	#	# @param ec_id target ExecutionContext Id
+	#	#
+	#	# @return RTC::ReturnCode_t
+	#	#
+	#	#
+	#def onRateChanged(self, ec_id):
+	#
+	#	return RTC.RTC_OK
+	
+	def set_callback(self, cb):
+		print "set_callback for tk window."
+		self.callback = cb
+
+
+def macTabletRTCInit(manager):
+    profile = OpenRTM_aist.Properties(defaults_str=mactabletrtc_spec)
+    manager.registerFactory(profile,
+                            macTabletRTC,
+                            OpenRTM_aist.Delete)
+
+def MyModuleInit(manager):
+    macTabletRTCInit(manager)
+
+    # Create a component
+    #comp = manager.createComponent("macTabletRTC")
+
+def main():
+	m_window = tabletWindow.tabletWindow()
+	m_window.master.title("macTabletRTC")
+	mgr = OpenRTM_aist.Manager.init(sys.argv)
+	mgr.setModuleInitProc(MyModuleInit)
+	mgr.activateManager()
+
+	comp = mgr.createComponent("macTabletRTC")
+	comp.set_callback(m_window.m_frame)
+
+	mgr.runManager(True)
+	m_window.mainloop()
+
+	m_window.exit()
+if __name__ == "__main__":
+	main()
+

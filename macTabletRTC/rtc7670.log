@@ -1,0 +1,24 @@
+2013-12-07 16:51:01,042 manager INFO 1.1.0
+2013-12-07 16:51:01,042 manager INFO Copyright (C) 2003-2010
+2013-12-07 16:51:01,042 manager INFO   Noriaki Ando
+2013-12-07 16:51:01,042 manager INFO   Intelligent Systems Research Institute, AIST
+2013-12-07 16:51:01,042 manager INFO Manager starting.
+2013-12-07 16:51:01,042 manager INFO Starting local logging.
+2013-12-07 16:51:01,044 manager.namingmanager INFO NameServer connection succeeded: corba/localhost
+2013-12-07 16:51:01,049 ManagerServant INFO Master manager not found
+2013-12-07 16:51:01,050 manager ERROR Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/OpenRTM_aist/Manager.py", line 1751, in initManagerServant
+    reffile = file(self._config.getProperty("manager.refstring_path"),'w')
+IOError: [Errno 13] Permission denied: '/var/log/rtcmanager.ref'
+
+2013-12-07 16:51:14,979 SdoServiceAdmin WARNING No available SDO service in the factory: 
+2013-12-07 16:51:14,979 SdoServiceAdmin ERROR type  already exists.
+2013-12-07 16:51:14,980 SdoServiceAdmin WARNING No available SDO service in the factory: IDL:OpenRTM/ComponentObserver:1.0
+2013-12-07 16:51:14,980 SdoServiceAdmin ERROR type d8fd7537-cdc7-4718-bef5-9a40b9ad85e0 already exists.
+2013-12-07 16:51:16,918 rtobject ERROR Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/OpenRTM_aist/RTObject.py", line 1549, in on_execute
+    ret = self.onExecute(ec_id)
+  File "macTabletRTC.py", line 193, in onExecute
+    self._preussreOut.write()
+AttributeError: macTabletRTC instance has no attribute '_preussreOut'
+
